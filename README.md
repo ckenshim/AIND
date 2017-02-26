@@ -3,16 +3,29 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: The naked twins is another strategy that reduces domain(possible digits) for variables (boxes) in a particular unit.
-  I apply this strategy ia a main loop ('reduce_puzzle' method) where all strategies are applied including search.
-  In general, to implement this strategy I iterate over all units and look for a boxes that have equal values of 
-  lenght 2. After that I remove values of naked twins from other boxes in the unit.
+A: The naked twins is another strategy that reduces domain(possible digits) for variables (boxes) in a particular unit. 
+  The idea behind this strategy is that we are looking for two boxes that have two same possible values in a unit. We know that
+  these two possibilities can only be assigned to one of these two boxes. Therefore, we eliminate these values from other 
+  boxes in the same unit. Other two strategies that we implemented before, namely, 'eliminate' and 'only choice', cannot 
+  find such cases, since they are looking for other types of inconsistencies.
+  We apply this strategy in a loop ('reduce_puzzle' method) where all strategies are applied, to maximally 
+  reduce puzzle before applying search algorithm. Adding another strategy, like 'naked twins',  that propagates constraints 
+  increases chances of puzzle being solved before first assignment in a search process. In general, the more constraint
+  propagation strategies we apply repeatedly as a preprocessing step (or propagation step), the better. This is because,
+  whenever we solve an inconsistency using a particular strategy, a new inconsistency can arise that can be solved by
+   another strategy, or even the same strategy.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: Diagonal Sudoku adds two more AllDiff constraints to existing 27 row, column, and 3x3 square AllDiffs.
- I do this by defining diagonal units ('diag_unit') and add them to the list of units. I do not make any other explicit 
-      changes to the code, since it is organized in such a way that it automatically applies all defined constraints. 
+A: We solve digonal sudoku using the same approach (repeatedly apply reduction and search steps) that we use to solve
+ normal one. The main difference between normal and diagonal sudoku, is that latter introduces two more constraints
+ (numbers 1 to 9 appear exactly once on main diagonals). Having more constraints on the same amount of variables 
+ makes them harder to satisfy. As a results, we could have more false paths, that do not lead to a solution, during a 
+ search process. Which in turn, obviously, increases algorithms execution time. 
+ In terms of the code, to make the additional constraints we define diagonal units ('diag_unit') in the code and 
+ add them to the list of units. I do not make any other explicit changes to the code, since it is organized in such 
+ a way that it automatically applies all defined constraints.
+ 
 
 ### Install
 

@@ -1,15 +1,6 @@
-assignments = []
+from utils import *
+import logging
 
-
-def assign_value(values, box, value):
-    """
-    Please use this function to update your values dictionary!
-    Assigns a value to a given box. If it updates the board record it.
-    """
-    values[box] = value
-    if len(value) == 1:
-        assignments.append(values.copy())
-    return values
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -19,7 +10,7 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-
+    logging.debug("Naked twins started")
     # Iterating over units
     for unit in unitlist:
 
@@ -44,51 +35,14 @@ def naked_twins(values):
 
     return values
 
-
-def cross(a, b):
-    return [s + t for s in a for t in b]
-
-
-def grid_values(grid):
-    """
-    Convert grid into a dict of {square: char} with '123456789' for empties.
-    Input: A grid in string form.
-    Output: A grid in dictionary form
-            Keys: The boxes, e.g., 'A1'
-            Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
-    """
-    chars = []
-    digits = '123456789'
-    for c in grid:
-        if c in digits:
-            chars.append(c)
-        if c == '.':
-            chars.append(digits)
-    assert len(chars) == 81
-    return dict(zip(boxes, chars))
-
-
-def display(values):
-    """
-    Display the values as a 2-D grid.
-    Input: The sudoku in dictionary form
-    Output: None
-    """
-    width = 1+max(len(values[s]) for s in boxes)
-    line = '+'.join(['-'*(width*3)]*3)
-    for r in rows:
-        print(''.join(values[r+c].center(width)+('|' if c in '36' else '')
-                      for c in cols))
-        if r in 'CF': print(line)
-    print
-
-
 def eliminate(values):
     """
     Go through all the boxes, and whenever there is a box with a value, eliminate this value from the values of all its peers.
     Input: A sudoku in dictionary form.
     Output: The resulting sudoku in dictionary form.
     """
+
+    logging.debug("Eliminate started.")
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     for box in solved_values:
         digit = values[box]
@@ -103,6 +57,8 @@ def only_choice(values):
     Input: A sudoku in dictionary form.
     Output: The resulting sudoku in dictionary form.
     """
+
+    logging.debug("Only choice started.")
     for unit in unitlist:
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
@@ -119,6 +75,8 @@ def reduce_puzzle(values):
     Input: A sudoku in dictionary form.
     Output: The resulting sudoku in dictionary form.
     """
+
+    logging.debug("Puzzle reduction ...")
     solved_values = [box for box in values.keys() if len(values[box]) == 1]
     stalled = False
     while not stalled:
@@ -129,6 +87,7 @@ def reduce_puzzle(values):
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         stalled = solved_values_before == solved_values_after
         if len([box for box in values.keys() if len(values[box]) == 0]):
+            logging.debug("Incorrect path.")
             return False
     return values
 
@@ -143,9 +102,11 @@ def search(values):
         return values  ## Solved!
     # Choose one of the unfilled squares with the fewest possibilities
     n, s = min((len(values[s]), s) for s in boxes if len(values[s]) > 1)
+
     # Now use recurrence to solve each one of the resulting sudokus, and
     for value in values[s]:
         new_sudoku = values.copy()
+        logging.debug("New assignment: " + s + " : " + value)
         assign_value(new_sudoku, s, value)
         attempt = search(new_sudoku)
         if attempt:
@@ -170,26 +131,18 @@ def solve(grid):
 
     return values
 
-rows = 'ABCDEFGHI'
-cols = '123456789'
-boxes = cross(rows, cols)
-row_units = [cross(r, cols) for r in rows]
-column_units = [cross(rows, c) for c in cols]
-square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-
-# adding another set of units - diagonals
-diag_units = [[rows[i]+cols[i] for i in range(len(rows))],
-              [rows[i]+cols[-i-1] for i in range(len(rows))]]
-
-unitlist = row_units + column_units + square_units + diag_units
-units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
 
 if __name__ == '__main__':
 
-    #print(units)
+    logging.basicConfig(level=logging.ERROR)
+
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+
+    logging.info("Starting solving Diagonal Sudoku")
+
     display(solve(diag_sudoku_grid))
+
+    logging.info("Finished")
 
     try:
         from visualize import visualize_assignments
